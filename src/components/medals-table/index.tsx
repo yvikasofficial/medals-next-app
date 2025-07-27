@@ -5,8 +5,8 @@ import { AgGridReact } from "ag-grid-react";
 import { RowClassRules, ICellRendererParams } from "ag-grid-community";
 import medalsData from "@/app/medals.json";
 import { ModuleRegistry, AllCommunityModule } from "ag-grid-community";
-import { MedalData, createColumnDefinitions } from "./columns-custom";
-import MedalSummaryCards from "./MedalSummaryCards";
+import { MedalData, createColumnDefinitions } from "./custom-columns";
+import MedalSummaryCards from "./medal-summary";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 

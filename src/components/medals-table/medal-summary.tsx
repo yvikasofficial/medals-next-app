@@ -9,11 +9,11 @@ interface MedalTotals {
   total: number;
 }
 
-interface MedalSummaryCardsProps {
+interface MedalSummaryProps {
   totals: MedalTotals;
 }
 
-export default function MedalSummaryCards({ totals }: MedalSummaryCardsProps) {
+export default function MedalSummary({ totals }: MedalSummaryProps) {
   return (
     <div className="grid grid-cols-4 gap-4 mb-4">
       <div className="border rounded-lg p-4 text-center bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200">
