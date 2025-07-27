@@ -4,6 +4,7 @@ import React, { useMemo } from "react";
 import { AgGridReact } from "ag-grid-react";
 import { ColDef, ICellRendererParams, RowClassRules } from "ag-grid-community";
 import medalsData from "@/app/medals.json";
+import { getFlagByCode } from "@/lib/get-flag-by-code";
 
 import { ModuleRegistry, AllCommunityModule } from "ag-grid-community";
 
@@ -29,10 +30,11 @@ const MedalCellRenderer = (params: ICellRendererParams) => {
 const CountryCellRenderer = (params: ICellRendererParams) => {
   return (
     <div className="flex items-center gap-2">
-      <div className="w-6 h-4 border rounded flex items-center justify-center text-xs">
-        {params.value}
-      </div>
-      <span className="font-medium">{params.value}</span>
+      <div
+        className="w-6 h-4 border rounded flex items-center justify-center text-xs"
+        style={getFlagByCode(params.data.code)}
+      />
+      <span className="font-medium">{params.data.code}</span>
     </div>
   );
 };
