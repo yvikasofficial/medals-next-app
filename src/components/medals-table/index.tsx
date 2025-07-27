@@ -8,18 +8,20 @@ import { Medal } from "@/types/medal";
 import { createColumnDefinitions } from "./custom-columns";
 import MedalSummaryCards from "./medal-summary";
 import { useGetMedals } from "@/services/medals/use-get-medals";
+import { Button } from "@/components/ui/button";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 export default function MedalsTable() {
   // Use the query hook to fetch medals data
   const { data, isLoading, error, refetch } = useGetMedals();
+  const medals = data?.record.medals;
 
   // Process data to add totals and rankings
   const processedData = useMemo(() => {
-    if (!data?.medals) return [];
+    if (!medals) return [];
 
-    const dataWithTotals = data.medals.map((country: Medal) => ({
+    const dataWithTotals = medals.map((country: Medal) => ({
       ...country,
       total: country.gold + country.silver + country.bronze,
     }));
@@ -36,7 +38,7 @@ export default function MedalsTable() {
       ...country,
       rank: index + 1,
     }));
-  }, [data]);
+  }, [medals]);
 
   // Column definitions
   const columnDefs = useMemo(() => createColumnDefinitions(), []);
@@ -76,9 +78,22 @@ export default function MedalsTable() {
   // Handle loading state
   if (isLoading) {
     return (
-      <div className="w-full max-w-[800px] mx-auto space-y-4">
-        <div className="flex justify-center items-center py-20">
-          <div className="text-lg text-gray-600">Loading medals data...</div>
+      <div className="w-full max-w-[800px] h-[calc(100vh-100px)] mx-auto space-y-4">
+        <div className="flex flex-col justify-center items-center h-full py-20 space-y-6">
+          {/* Spinner */}
+          <div className="relative">
+            <div className="w-12 h-12 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin"></div>
+          </div>
+
+          {/* Loading Message */}
+          <div className="text-center space-y-2">
+            <h3 className="text-xl font-semibold text-gray-800">
+              Loading Olympics Data
+            </h3>
+            <p className="text-gray-600 max-w-md">
+              Fetching the latest medal standings from the Olympics...
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -87,16 +102,26 @@ export default function MedalsTable() {
   // Handle error state
   if (error) {
     return (
-      <div className="w-full max-w-[800px] mx-auto space-y-4">
-        <div className="flex flex-col justify-center items-center py-20 space-y-4">
-          <div className="text-lg text-red-600">Error loading medals data</div>
-          <div className="text-sm text-gray-600">{error.message}</div>
-          <button
-            onClick={() => refetch()}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            Retry
-          </button>
+      <div className="w-full max-w-[800px] h-[calc(100vh-100px)] mx-auto">
+        <div className="flex flex-col justify-center items-center h-full py-20 space-y-6">
+          {/* Error Icon */}
+          <div className="text-6xl text-red-500">⚠️</div>
+
+          {/* Error Message */}
+          <div className="text-center space-y-2">
+            <h3 className="text-xl font-semibold text-gray-800">
+              Unable to load medals data
+            </h3>
+            <p className="text-gray-600 max-w-md">
+              {error.message ||
+                "Something went wrong while fetching the Olympics medal data. Please try again."}
+            </p>
+          </div>
+
+          {/* Retry Button */}
+          <Button onClick={() => refetch()} variant="default" className="mt-4">
+            Try Again
+          </Button>
         </div>
       </div>
     );

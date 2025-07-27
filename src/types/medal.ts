@@ -20,5 +20,7 @@ export interface MedalTotals {
 export type MedalType = "gold" | "silver" | "bronze" | "total";
 
 export type MedalsApiResponse = {
-  medals: Medal[];
+  record: {
+    medals: Medal[];
+  };
 };

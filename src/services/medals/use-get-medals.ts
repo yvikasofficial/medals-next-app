@@ -45,8 +45,8 @@ export const useGetMedals = (
     refetchOnWindowFocus,
     staleTime,
     cacheTime,
-    // Retry failed requests up to 3 times
-    retry: 3,
+    // Retry failed requests up to 1 time only
+    retry: 1,
     // Retry delay that increases exponentially
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
