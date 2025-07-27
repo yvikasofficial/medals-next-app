@@ -24,6 +24,29 @@ interface MedalData {
   rank?: number;
 }
 
+// Medal type configurations
+const medalConfigs = {
+  gold: {
+    label: "Gold",
+    iconClasses:
+      "w-4 h-4 rounded-full bg-gradient-to-br from-yellow-300 to-yellow-600 border border-yellow-700",
+  },
+  silver: {
+    label: "Silver",
+    iconClasses:
+      "w-4 h-4 rounded-full bg-gradient-to-br from-gray-300 to-gray-500 border border-gray-600",
+  },
+  bronze: {
+    label: "Bronze",
+    iconClasses:
+      "w-4 h-4 rounded-full bg-gradient-to-br from-amber-600 to-amber-800 border border-amber-900",
+  },
+  total: {
+    label: "Total",
+    iconClasses: null, // No icon for total
+  },
+};
+
 // Simple cell renderer for medal counts without colors
 const MedalCellRenderer = (params: ICellRendererParams) => {
   return (
@@ -49,137 +72,42 @@ const RankCellRenderer = (params: ICellRendererParams) => {
   return <div className="text-center">#{params.value}</div>;
 };
 
-// Custom header renderer for Gold medal
-const GoldHeaderRenderer = (params: IHeaderParams) => {
-  const [sortDirection, setSortDirection] = useState(params.column.getSort());
+// Simplified reusable header renderer for all medal types
+const MedalHeaderRenderer = (medalType: keyof typeof medalConfigs) => {
+  const HeaderComponent = (params: IHeaderParams) => {
+    const [sortDirection, setSortDirection] = useState(params.column.getSort());
+    const config = medalConfigs[medalType];
 
-  useEffect(() => {
-    const updateSortDirection = () => {
-      setSortDirection(params.column.getSort());
+    useEffect(() => {
+      const updateSortDirection = () => {
+        setSortDirection(params.column.getSort());
+      };
+
+      params.column.addEventListener("sortChanged", updateSortDirection);
+      return () => {
+        params.column.removeEventListener("sortChanged", updateSortDirection);
+      };
+    }, [params.column]);
+
+    const onSortClicked = () => {
+      params.progressSort(true);
     };
 
-    // Listen for sort changes on this column
-    params.column.addEventListener("sortChanged", updateSortDirection);
-
-    // Cleanup listener on unmount
-    return () => {
-      params.column.removeEventListener("sortChanged", updateSortDirection);
-    };
-  }, [params.column]);
-
-  const onSortClicked = () => {
-    params.progressSort(true); // Force sorting
+    return (
+      <div
+        className="flex items-center gap-2 justify-center cursor-pointer hover:bg-gray-100 p-1 rounded"
+        onClick={onSortClicked}
+      >
+        {config.iconClasses && <div className={config.iconClasses}></div>}
+        <span>{config.label}</span>
+        {sortDirection === "asc" && <span className="text-xs">↑</span>}
+        {sortDirection === "desc" && <span className="text-xs">↓</span>}
+      </div>
+    );
   };
 
-  return (
-    <div
-      className="flex items-center gap-2 justify-center cursor-pointer hover:bg-gray-100 p-1 rounded"
-      onClick={onSortClicked}
-    >
-      <div className="w-4 h-4 rounded-full bg-gradient-to-br from-yellow-300 to-yellow-600 border border-yellow-700"></div>
-      <span>Gold</span>
-      {sortDirection === "asc" && <span className="text-xs">↑</span>}
-      {sortDirection === "desc" && <span className="text-xs">↓</span>}
-    </div>
-  );
-};
-
-// Custom header renderer for Silver medal
-const SilverHeaderRenderer = (params: IHeaderParams) => {
-  const [sortDirection, setSortDirection] = useState(params.column.getSort());
-
-  useEffect(() => {
-    const updateSortDirection = () => {
-      setSortDirection(params.column.getSort());
-    };
-
-    params.column.addEventListener("sortChanged", updateSortDirection);
-
-    return () => {
-      params.column.removeEventListener("sortChanged", updateSortDirection);
-    };
-  }, [params.column]);
-
-  const onSortClicked = () => {
-    params.progressSort(true); // Force sorting
-  };
-
-  return (
-    <div
-      className="flex items-center gap-2 justify-center cursor-pointer hover:bg-gray-100 p-1 rounded"
-      onClick={onSortClicked}
-    >
-      <div className="w-4 h-4 rounded-full bg-gradient-to-br from-gray-300 to-gray-500 border border-gray-600"></div>
-      <span>Silver</span>
-      {sortDirection === "asc" && <span className="text-xs">↑</span>}
-      {sortDirection === "desc" && <span className="text-xs">↓</span>}
-    </div>
-  );
-};
-
-// Custom header renderer for Bronze medal
-const BronzeHeaderRenderer = (params: IHeaderParams) => {
-  const [sortDirection, setSortDirection] = useState(params.column.getSort());
-
-  useEffect(() => {
-    const updateSortDirection = () => {
-      setSortDirection(params.column.getSort());
-    };
-
-    params.column.addEventListener("sortChanged", updateSortDirection);
-
-    return () => {
-      params.column.removeEventListener("sortChanged", updateSortDirection);
-    };
-  }, [params.column]);
-
-  const onSortClicked = () => {
-    params.progressSort(true); // Force sorting
-  };
-
-  return (
-    <div
-      className="flex items-center gap-2 justify-center cursor-pointer hover:bg-gray-100 p-1 rounded"
-      onClick={onSortClicked}
-    >
-      <div className="w-4 h-4 rounded-full bg-gradient-to-br from-amber-600 to-amber-800 border border-amber-900"></div>
-      <span>Bronze</span>
-      {sortDirection === "asc" && <span className="text-xs">↑</span>}
-      {sortDirection === "desc" && <span className="text-xs">↓</span>}
-    </div>
-  );
-};
-
-// Custom header renderer for Total column
-const TotalHeaderRenderer = (params: IHeaderParams) => {
-  const [sortDirection, setSortDirection] = useState(params.column.getSort());
-
-  useEffect(() => {
-    const updateSortDirection = () => {
-      setSortDirection(params.column.getSort());
-    };
-
-    params.column.addEventListener("sortChanged", updateSortDirection);
-
-    return () => {
-      params.column.removeEventListener("sortChanged", updateSortDirection);
-    };
-  }, [params.column]);
-
-  const onSortClicked = () => {
-    params.progressSort(true); // Force sorting
-  };
-
-  return (
-    <div
-      className="flex items-center gap-2 justify-center cursor-pointer hover:bg-gray-100 p-1 rounded"
-      onClick={onSortClicked}
-    >
-      <span>Total</span>
-      {sortDirection === "asc" && <span className="text-xs">↑</span>}
-      {sortDirection === "desc" && <span className="text-xs">↓</span>}
-    </div>
-  );
+  HeaderComponent.displayName = `MedalHeader_${medalType}`;
+  return HeaderComponent;
 };
 
 export default function MedalsTable() {
@@ -225,18 +153,18 @@ export default function MedalsTable() {
       {
         field: "gold",
         headerName: "Gold",
-        headerComponent: GoldHeaderRenderer,
+        headerComponent: MedalHeaderRenderer("gold"),
         cellRenderer: MedalCellRenderer,
         sortable: true,
         sort: "desc",
         width: 120,
         type: "numericColumn",
-        suppressMenu: true, // Disable column menu to avoid conflicts
+        suppressMenu: true,
       },
       {
         field: "silver",
         headerName: "Silver",
-        headerComponent: SilverHeaderRenderer,
+        headerComponent: MedalHeaderRenderer("silver"),
         cellRenderer: MedalCellRenderer,
         sortable: true,
         width: 120,
@@ -246,7 +174,7 @@ export default function MedalsTable() {
       {
         field: "bronze",
         headerName: "Bronze",
-        headerComponent: BronzeHeaderRenderer,
+        headerComponent: MedalHeaderRenderer("bronze"),
         cellRenderer: MedalCellRenderer,
         sortable: true,
         width: 120,
@@ -256,7 +184,7 @@ export default function MedalsTable() {
       {
         field: "total",
         headerName: "Total",
-        headerComponent: TotalHeaderRenderer,
+        headerComponent: MedalHeaderRenderer("total"),
         cellRenderer: MedalCellRenderer,
         sortable: true,
         width: 120,
@@ -334,7 +262,7 @@ export default function MedalsTable() {
         </div>
         <div className="border rounded-lg p-4 text-center">
           <div className="text-2xl font-bold">{totals.bronze}</div>
-          <div className="text-sm">Total Silver</div>
+          <div className="text-sm">Total Bronze</div>
         </div>
         <div className="border rounded-lg p-4 text-center">
           <div className="text-2xl font-bold">{totals.total}</div>
