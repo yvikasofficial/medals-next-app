@@ -228,7 +228,7 @@ export default function MedalsTable() {
   }, [processedData]);
 
   return (
-    <div className="w-full space-y-4 p-4">
+    <div className="w-full max-w-[800px] mx-auto space-y-4 p-4">
       <style jsx>{`
         :global(.first-place) {
           background-color: #fef3c7 !important; /* Light gold */
@@ -271,10 +271,7 @@ export default function MedalsTable() {
       </div>
 
       {/* AG Grid Table */}
-      <div
-        className="ag-theme-alpine"
-        style={{ height: 600, width: "100%", maxWidth: 700 }}
-      >
+      <div className="ag-theme-alpine" style={{ height: 600, width: "100%" }}>
         <AgGridReact
           rowData={processedData}
           columnDefs={columnDefs}
