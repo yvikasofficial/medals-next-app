@@ -68,7 +68,7 @@ export default function MedalsTable() {
   }, [processedData]);
 
   return (
-    <div className="w-full max-w-[800px] mx-auto space-y-4 p-4">
+    <div className="w-full max-w-[800px] mx-auto space-y-4">
       <style jsx>{`
         :global(.first-place) {
           background-color: #fef3c7 !important; /* Light gold */
@@ -94,7 +94,7 @@ export default function MedalsTable() {
       <MedalSummaryCards totals={totals} />
 
       {/* AG Grid Table */}
-      <div className="ag-theme-alpine" style={{ height: 600, width: "100%" }}>
+      <div className="ag-theme-alpine" style={{ height: 500, width: "100%" }}>
         <AgGridReact
           rowData={processedData}
           columnDefs={columnDefs}
@@ -109,10 +109,6 @@ export default function MedalsTable() {
           suppressMenuHide={false}
           domLayout="normal"
         />
-      </div>
-
-      <div className="text-xs text-gray-500 text-center">
-        Data sorted by Gold medals (descending), then Silver, then Bronze
       </div>
     </div>
   );
