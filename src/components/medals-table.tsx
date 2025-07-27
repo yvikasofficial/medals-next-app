@@ -1,8 +1,13 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { AgGridReact } from "ag-grid-react";
-import { ColDef, ICellRendererParams, RowClassRules } from "ag-grid-community";
+import {
+  ColDef,
+  ICellRendererParams,
+  RowClassRules,
+  IHeaderParams,
+} from "ag-grid-community";
 import medalsData from "@/app/medals.json";
 import { getFlagByCode } from "@/lib/get-flag-by-code";
 
@@ -44,6 +49,139 @@ const RankCellRenderer = (params: ICellRendererParams) => {
   return <div className="text-center">#{params.value}</div>;
 };
 
+// Custom header renderer for Gold medal
+const GoldHeaderRenderer = (params: IHeaderParams) => {
+  const [sortDirection, setSortDirection] = useState(params.column.getSort());
+
+  useEffect(() => {
+    const updateSortDirection = () => {
+      setSortDirection(params.column.getSort());
+    };
+
+    // Listen for sort changes on this column
+    params.column.addEventListener("sortChanged", updateSortDirection);
+
+    // Cleanup listener on unmount
+    return () => {
+      params.column.removeEventListener("sortChanged", updateSortDirection);
+    };
+  }, [params.column]);
+
+  const onSortClicked = () => {
+    params.progressSort(true); // Force sorting
+  };
+
+  return (
+    <div
+      className="flex items-center gap-2 justify-center cursor-pointer hover:bg-gray-100 p-1 rounded"
+      onClick={onSortClicked}
+    >
+      <div className="w-4 h-4 rounded-full bg-gradient-to-br from-yellow-300 to-yellow-600 border border-yellow-700"></div>
+      <span>Gold</span>
+      {sortDirection === "asc" && <span className="text-xs">↑</span>}
+      {sortDirection === "desc" && <span className="text-xs">↓</span>}
+    </div>
+  );
+};
+
+// Custom header renderer for Silver medal
+const SilverHeaderRenderer = (params: IHeaderParams) => {
+  const [sortDirection, setSortDirection] = useState(params.column.getSort());
+
+  useEffect(() => {
+    const updateSortDirection = () => {
+      setSortDirection(params.column.getSort());
+    };
+
+    params.column.addEventListener("sortChanged", updateSortDirection);
+
+    return () => {
+      params.column.removeEventListener("sortChanged", updateSortDirection);
+    };
+  }, [params.column]);
+
+  const onSortClicked = () => {
+    params.progressSort(true); // Force sorting
+  };
+
+  return (
+    <div
+      className="flex items-center gap-2 justify-center cursor-pointer hover:bg-gray-100 p-1 rounded"
+      onClick={onSortClicked}
+    >
+      <div className="w-4 h-4 rounded-full bg-gradient-to-br from-gray-300 to-gray-500 border border-gray-600"></div>
+      <span>Silver</span>
+      {sortDirection === "asc" && <span className="text-xs">↑</span>}
+      {sortDirection === "desc" && <span className="text-xs">↓</span>}
+    </div>
+  );
+};
+
+// Custom header renderer for Bronze medal
+const BronzeHeaderRenderer = (params: IHeaderParams) => {
+  const [sortDirection, setSortDirection] = useState(params.column.getSort());
+
+  useEffect(() => {
+    const updateSortDirection = () => {
+      setSortDirection(params.column.getSort());
+    };
+
+    params.column.addEventListener("sortChanged", updateSortDirection);
+
+    return () => {
+      params.column.removeEventListener("sortChanged", updateSortDirection);
+    };
+  }, [params.column]);
+
+  const onSortClicked = () => {
+    params.progressSort(true); // Force sorting
+  };
+
+  return (
+    <div
+      className="flex items-center gap-2 justify-center cursor-pointer hover:bg-gray-100 p-1 rounded"
+      onClick={onSortClicked}
+    >
+      <div className="w-4 h-4 rounded-full bg-gradient-to-br from-amber-600 to-amber-800 border border-amber-900"></div>
+      <span>Bronze</span>
+      {sortDirection === "asc" && <span className="text-xs">↑</span>}
+      {sortDirection === "desc" && <span className="text-xs">↓</span>}
+    </div>
+  );
+};
+
+// Custom header renderer for Total column
+const TotalHeaderRenderer = (params: IHeaderParams) => {
+  const [sortDirection, setSortDirection] = useState(params.column.getSort());
+
+  useEffect(() => {
+    const updateSortDirection = () => {
+      setSortDirection(params.column.getSort());
+    };
+
+    params.column.addEventListener("sortChanged", updateSortDirection);
+
+    return () => {
+      params.column.removeEventListener("sortChanged", updateSortDirection);
+    };
+  }, [params.column]);
+
+  const onSortClicked = () => {
+    params.progressSort(true); // Force sorting
+  };
+
+  return (
+    <div
+      className="flex items-center gap-2 justify-center cursor-pointer hover:bg-gray-100 p-1 rounded"
+      onClick={onSortClicked}
+    >
+      <span>Total</span>
+      {sortDirection === "asc" && <span className="text-xs">↑</span>}
+      {sortDirection === "desc" && <span className="text-xs">↓</span>}
+    </div>
+  );
+};
+
 export default function MedalsTable() {
   // Process data to add totals and rankings
   const processedData = useMemo(() => {
@@ -82,31 +220,48 @@ export default function MedalsTable() {
         cellRenderer: CountryCellRenderer,
         flex: 1,
         minWidth: 150,
+        sortable: true,
       },
       {
         field: "gold",
         headerName: "Gold",
+        headerComponent: GoldHeaderRenderer,
         cellRenderer: MedalCellRenderer,
+        sortable: true,
         sort: "desc",
-        width: 100,
+        width: 120,
+        type: "numericColumn",
+        suppressMenu: true, // Disable column menu to avoid conflicts
       },
       {
         field: "silver",
         headerName: "Silver",
+        headerComponent: SilverHeaderRenderer,
         cellRenderer: MedalCellRenderer,
-        width: 100,
+        sortable: true,
+        width: 120,
+        type: "numericColumn",
+        suppressMenu: true,
       },
       {
         field: "bronze",
         headerName: "Bronze",
+        headerComponent: BronzeHeaderRenderer,
         cellRenderer: MedalCellRenderer,
-        width: 100,
+        sortable: true,
+        width: 120,
+        type: "numericColumn",
+        suppressMenu: true,
       },
       {
         field: "total",
         headerName: "Total",
+        headerComponent: TotalHeaderRenderer,
         cellRenderer: MedalCellRenderer,
-        width: 100,
+        sortable: true,
+        width: 120,
+        type: "numericColumn",
+        suppressMenu: true,
       },
     ],
     []
@@ -202,7 +357,7 @@ export default function MedalsTable() {
           suppressRowClickSelection={true}
           rowSelection="multiple"
           rowMultiSelectWithClick={true}
-          suppressMenuHide={true}
+          suppressMenuHide={false}
           domLayout="normal"
         />
       </div>
