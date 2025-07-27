@@ -113,7 +113,6 @@ export const createColumnDefinitions = (): ColDef[] => [
     headerComponent: MedalHeaderRenderer("gold"),
     cellRenderer: MedalCellRenderer,
     sortable: true,
-    sort: "desc",
     width: 120,
     type: "numericColumn",
   },

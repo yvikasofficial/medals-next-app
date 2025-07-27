@@ -1,8 +1,13 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useCallback, useRef } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { AgGridReact } from "ag-grid-react";
-import { RowClassRules, ICellRendererParams } from "ag-grid-community";
+import {
+  RowClassRules,
+  ICellRendererParams,
+  SortChangedEvent,
+} from "ag-grid-community";
 import { ModuleRegistry, AllCommunityModule } from "ag-grid-community";
 import { Medal } from "@/types/medal";
 import { createColumnDefinitions } from "./custom-columns";
@@ -17,31 +22,99 @@ export default function MedalsTable() {
   const { data, isLoading, error, refetch } = useGetMedals();
   const medals = data?.record.medals;
 
-  // Process data to add totals and rankings
+  // Routing hooks
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const sortParam = searchParams.get("sort");
+  const directionParam = searchParams.get("direction") || "desc";
+
+  // Grid reference for programmatic control
+  const gridRef = useRef<AgGridReact>(null);
+
+  // Update URL when sort parameter changes
+  const updateSortParam = useCallback(
+    (newSort: string | null, newDirection: string | null = "desc") => {
+      const params = new URLSearchParams(searchParams.toString());
+
+      if (newSort && newSort !== "default") {
+        params.set("sort", newSort);
+        params.set("direction", newDirection || "desc");
+      } else {
+        params.delete("sort");
+        params.delete("direction");
+      }
+
+      const newUrl = `${pathname}?${params.toString()}`;
+      router.replace(newUrl, { scroll: false });
+    },
+    [searchParams, pathname, router]
+  );
+
+  // Handle AG Grid sort changes
+  const onSortChanged = useCallback(
+    (event: SortChangedEvent) => {
+      const sortModel = event.api.getColumnState();
+      const sortableColumns = sortModel.filter(
+        (col) => col.sort && col.colId !== "rank"
+      );
+
+      if (sortableColumns.length === 0) {
+        updateSortParam(null);
+      } else {
+        const sort = sortableColumns[0];
+        updateSortParam(sort.colId, sort.sort || "desc");
+      }
+
+      // Update ranks after sorting
+      updateRanks();
+    },
+    [updateSortParam]
+  );
+
+  // Function to update ranks based on current grid order
+  const updateRanks = useCallback(() => {
+    if (gridRef.current?.api) {
+      const api = gridRef.current.api;
+      api.forEachNodeAfterFilterAndSort((node, index) => {
+        if (node.data) {
+          node.setDataValue("rank", index + 1);
+        }
+      });
+    }
+  }, []);
+
+  // Process data to add totals only - let AG Grid handle sorting
   const processedData = useMemo(() => {
     if (!medals) return [];
 
-    const dataWithTotals = medals.map((country: Medal) => ({
+    return medals.map((country: Medal, index) => ({
       ...country,
       total: country.gold + country.silver + country.bronze,
-    }));
-
-    // Sort by gold medals first, then silver, then bronze
-    const sortedData = dataWithTotals.sort((a, b) => {
-      if (a.gold !== b.gold) return b.gold - a.gold;
-      if (a.silver !== b.silver) return b.silver - a.silver;
-      return b.bronze - a.bronze;
-    });
-
-    // Add rankings
-    return sortedData.map((country, index) => ({
-      ...country,
-      rank: index + 1,
+      rank: index + 1, // Initial rank, will be updated after sorting
     }));
   }, [medals]);
 
-  // Column definitions
-  const columnDefs = useMemo(() => createColumnDefinitions(), []);
+  // Column definitions with initial sort state
+  const columnDefs = useMemo(() => {
+    const columns = createColumnDefinitions();
+
+    // Clear any default sort
+    columns.forEach((col) => {
+      delete col.sort;
+    });
+
+    // Only set initial sort if there's an explicit URL parameter
+    if (sortParam && sortParam !== "rank") {
+      const sortColumn = columns.find((col) => col.field === sortParam);
+      if (sortColumn && sortColumn.field !== "rank") {
+        sortColumn.sort = directionParam as "asc" | "desc";
+      }
+    }
+    // Remove the automatic default to gold sorting
+
+    return columns;
+  }, [sortParam, directionParam]);
 
   // Grid options
   const defaultColDef = useMemo(
@@ -51,6 +124,58 @@ export default function MedalsTable() {
     }),
     []
   );
+
+  // Custom comparator for proper medal sorting with tie-breaking
+  const medalComparator = useCallback(
+    (
+      valueA: number,
+      valueB: number,
+      nodeA: { data: Medal },
+      nodeB: { data: Medal },
+      isInverted: boolean
+    ) => {
+      // Primary comparison - only compare the actual column values
+      if (valueA !== valueB) {
+        return valueA - valueB;
+      }
+
+      // Only use tie-breaking when the primary values are equal
+      // And only if we're not sorting by gold (to prevent interference)
+      const currentSort = gridRef.current?.api
+        ?.getColumnState()
+        ?.find((col) => col.sort)?.colId;
+
+      if (currentSort !== "gold" && nodeA.data.gold !== nodeB.data.gold) {
+        return nodeA.data.gold - nodeB.data.gold;
+      }
+      if (currentSort !== "silver" && nodeA.data.silver !== nodeB.data.silver) {
+        return nodeA.data.silver - nodeB.data.silver;
+      }
+      if (currentSort !== "bronze" && nodeA.data.bronze !== nodeB.data.bronze) {
+        return nodeA.data.bronze - nodeB.data.bronze;
+      }
+      // Remove total comparison since it's not part of the Medal type
+
+      return 0;
+    },
+    []
+  );
+
+  // Enhanced column definitions with custom comparators
+  const enhancedColumnDefs = useMemo(() => {
+    return columnDefs.map((col) => {
+      if (
+        col.field &&
+        ["gold", "silver", "bronze", "total"].includes(col.field)
+      ) {
+        return {
+          ...col,
+          comparator: medalComparator,
+        };
+      }
+      return col;
+    });
+  }, [columnDefs, medalComparator]);
 
   // Row class rules for medal colors
   const rowClassRules = useMemo(
@@ -75,17 +200,19 @@ export default function MedalsTable() {
     );
   }, [processedData]);
 
+  // Grid ready callback to set initial sort and update ranks
+  const onGridReady = useCallback(() => {
+    updateRanks();
+  }, [updateRanks]);
+
   // Handle loading state
   if (isLoading) {
     return (
       <div className="w-full max-w-[800px] h-[calc(100vh-100px)] mx-auto space-y-4">
         <div className="flex flex-col justify-center items-center h-full py-20 space-y-6">
-          {/* Spinner */}
           <div className="relative">
             <div className="w-12 h-12 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin"></div>
           </div>
-
-          {/* Loading Message */}
           <div className="text-center space-y-2">
             <h3 className="text-xl font-semibold text-gray-800">
               Loading Olympics Data
@@ -104,10 +231,7 @@ export default function MedalsTable() {
     return (
       <div className="w-full max-w-[800px] h-[calc(100vh-100px)] mx-auto">
         <div className="flex flex-col justify-center items-center h-full py-20 space-y-6">
-          {/* Error Icon */}
           <div className="text-6xl text-red-500">⚠️</div>
-
-          {/* Error Message */}
           <div className="text-center space-y-2">
             <h3 className="text-xl font-semibold text-gray-800">
               Unable to load medals data
@@ -117,8 +241,6 @@ export default function MedalsTable() {
                 "Something went wrong while fetching the Olympics medal data. Please try again."}
             </p>
           </div>
-
-          {/* Retry Button */}
           <Button onClick={() => refetch()} variant="default" className="mt-4">
             Try Again
           </Button>
@@ -150,14 +272,13 @@ export default function MedalsTable() {
         </div>
       </div>
 
-      {/* Summary Cards */}
       <MedalSummaryCards totals={totals} />
 
-      {/* AG Grid Table */}
       <div className="ag-theme-alpine" style={{ height: 500, width: "100%" }}>
         <AgGridReact
+          ref={gridRef}
           rowData={processedData}
-          columnDefs={columnDefs}
+          columnDefs={enhancedColumnDefs}
           defaultColDef={defaultColDef}
           rowClassRules={rowClassRules as unknown as RowClassRules}
           suppressMultiSort={true}
@@ -168,6 +289,8 @@ export default function MedalsTable() {
           rowMultiSelectWithClick={true}
           suppressMenuHide={false}
           domLayout="normal"
+          onSortChanged={onSortChanged}
+          onGridReady={onGridReady}
         />
       </div>
     </div>
