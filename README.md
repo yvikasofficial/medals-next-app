@@ -4,7 +4,7 @@ A Next.js application that displays Olympic medal counts with sortable columns a
 
 ## 🔗 Live Demo
 
-[Deployed Link](YOUR_DEPLOYMENT_URL_HERE)
+[Deployed Link](https://medals-next-app.vercel.app/)
 
 ## 🛠️ Tools & Technologies
 
