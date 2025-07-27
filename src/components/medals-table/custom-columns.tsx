@@ -4,15 +4,6 @@ import React, { useState, useEffect } from "react";
 import { ICellRendererParams, IHeaderParams, ColDef } from "ag-grid-community";
 import { getFlagByCode } from "@/lib/get-flag-by-code";
 
-export interface MedalData {
-  code: string;
-  gold: number;
-  silver: number;
-  bronze: number;
-  total?: number;
-  rank?: number;
-}
-
 // Medal type configurations
 export const medalConfigs = {
   gold: {

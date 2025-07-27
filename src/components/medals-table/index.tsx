@@ -3,17 +3,23 @@
 import React, { useMemo } from "react";
 import { AgGridReact } from "ag-grid-react";
 import { RowClassRules, ICellRendererParams } from "ag-grid-community";
-import medalsData from "@/app/medals.json";
 import { ModuleRegistry, AllCommunityModule } from "ag-grid-community";
-import { MedalData, createColumnDefinitions } from "./custom-columns";
+import { Medal } from "@/types/medal";
+import { createColumnDefinitions } from "./custom-columns";
 import MedalSummaryCards from "./medal-summary";
+import { useGetMedals } from "@/services/medals/use-get-medals";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 export default function MedalsTable() {
+  // Use the query hook to fetch medals data
+  const { data, isLoading, error, refetch } = useGetMedals();
+
   // Process data to add totals and rankings
   const processedData = useMemo(() => {
-    const dataWithTotals = medalsData.map((country: MedalData) => ({
+    if (!data?.medals) return [];
+
+    const dataWithTotals = data.medals.map((country: Medal) => ({
       ...country,
       total: country.gold + country.silver + country.bronze,
     }));
@@ -30,7 +36,7 @@ export default function MedalsTable() {
       ...country,
       rank: index + 1,
     }));
-  }, []);
+  }, [data]);
 
   // Column definitions
   const columnDefs = useMemo(() => createColumnDefinitions(), []);
@@ -66,6 +72,35 @@ export default function MedalsTable() {
       { gold: 0, silver: 0, bronze: 0, total: 0 }
     );
   }, [processedData]);
+
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <div className="w-full max-w-[800px] mx-auto space-y-4">
+        <div className="flex justify-center items-center py-20">
+          <div className="text-lg text-gray-600">Loading medals data...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle error state
+  if (error) {
+    return (
+      <div className="w-full max-w-[800px] mx-auto space-y-4">
+        <div className="flex flex-col justify-center items-center py-20 space-y-4">
+          <div className="text-lg text-red-600">Error loading medals data</div>
+          <div className="text-sm text-gray-600">{error.message}</div>
+          <button
+            onClick={() => refetch()}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-[800px] mx-auto space-y-4">
