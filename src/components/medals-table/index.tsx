@@ -41,8 +41,9 @@ export default function MedalsTable() {
         params.set("sort", newSort);
         params.set("direction", newDirection || "desc");
       } else {
-        params.delete("sort");
-        params.delete("direction");
+        // Set to default (gold medal sorting) instead of deleting
+        params.set("sort", "default");
+        params.set("direction", "desc");
       }
 
       const newUrl = `${pathname}?${params.toString()}`;
@@ -60,27 +61,64 @@ export default function MedalsTable() {
       );
 
       if (sortableColumns.length === 0) {
-        updateSortParam(null);
+        updateSortParam("default", "desc");
       } else {
         const sort = sortableColumns[0];
-        updateSortParam(sort.colId, sort.sort || "desc");
+
+        // Check if this is the default Olympic sorting (gold descending)
+        // and the current URL param is "default" or missing
+        const isDefaultSort = sort.colId === "gold" && sort.sort === "desc";
+        const currentSortParam = searchParams.get("sort");
+        const isCurrentlyDefault =
+          !currentSortParam || currentSortParam === "default";
+
+        if (isDefaultSort && isCurrentlyDefault) {
+          // Keep it as "default" instead of changing to "gold"
+          updateSortParam("default", "desc");
+        } else {
+          updateSortParam(sort.colId, sort.sort || "desc");
+        }
       }
 
       // Remove the updateRanks() call to keep ranking static
     },
-    [updateSortParam]
+    [updateSortParam, searchParams]
   );
 
   // Remove the updateRanks function entirely since we want static ranking
 
-  // Process data to add totals only - let AG Grid handle sorting
+  // Process data with Olympic ranking criteria (Gold -> Silver -> Bronze)
   const processedData = useMemo(() => {
     if (!medals) return [];
 
-    return medals.map((country: Medal, index) => ({
+    // Add totals and sort by Olympic criteria
+    const medalsWithTotals = medals.map((country: Medal) => ({
       ...country,
       total: country.gold + country.silver + country.bronze,
-      rank: index + 1, // Initial rank, will be updated after sorting
+    }));
+
+    // Sort by Olympic criteria: Gold (desc) -> Silver (desc) -> Bronze (desc)
+    const sortedMedals = medalsWithTotals.sort((a, b) => {
+      // Primary: Gold medals (descending)
+      if (a.gold !== b.gold) {
+        return b.gold - a.gold;
+      }
+      // Secondary: Silver medals (descending)
+      if (a.silver !== b.silver) {
+        return b.silver - a.silver;
+      }
+      // Tertiary: Bronze medals (descending)
+      if (a.bronze !== b.bronze) {
+        return b.bronze - a.bronze;
+      }
+      // If all medals are equal, maintain original order
+      return 0;
+    });
+
+    // Assign ranks based on Olympic sorting
+    return sortedMedals.map((country, index) => ({
+      ...country,
+      rank: index + 1,
     }));
   }, [medals]);
 
@@ -93,14 +131,19 @@ export default function MedalsTable() {
       delete col.sort;
     });
 
-    // Only set initial sort if there's an explicit URL parameter
-    if (sortParam && sortParam !== "rank") {
+    // Set default sort to gold when sort parameter is "default" or not present
+    if (sortParam && sortParam !== "rank" && sortParam !== "default") {
       const sortColumn = columns.find((col) => col.field === sortParam);
       if (sortColumn && sortColumn.field !== "rank") {
         sortColumn.sort = directionParam as "asc" | "desc";
       }
+    } else {
+      // Default to gold medal sorting (descending) when sort is "default" or not present
+      const goldColumn = columns.find((col) => col.field === "gold");
+      if (goldColumn) {
+        goldColumn.sort = "desc";
+      }
     }
-    // Remove the automatic default to gold sorting
 
     return columns;
   }, [sortParam, directionParam]);
