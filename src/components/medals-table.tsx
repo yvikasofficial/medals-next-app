@@ -2,7 +2,7 @@
 
 import React, { useMemo } from "react";
 import { AgGridReact } from "ag-grid-react";
-import { ColDef, ICellRendererParams } from "ag-grid-community";
+import { ColDef, ICellRendererParams, RowClassRules } from "ag-grid-community";
 import medalsData from "@/app/medals.json";
 
 import { ModuleRegistry, AllCommunityModule } from "ag-grid-community";
@@ -119,6 +119,16 @@ export default function MedalsTable() {
     []
   );
 
+  // Row class rules for medal colors
+  const rowClassRules = useMemo(
+    () => ({
+      "first-place": (params: ICellRendererParams) => params.data.rank === 1,
+      "second-place": (params: ICellRendererParams) => params.data.rank === 2,
+      "third-place": (params: ICellRendererParams) => params.data.rank === 3,
+    }),
+    []
+  );
+
   // Calculate totals for footer
   const totals = useMemo(() => {
     return processedData.reduce(
@@ -134,6 +144,18 @@ export default function MedalsTable() {
 
   return (
     <div className="w-full space-y-4 p-4">
+      <style jsx>{`
+        :global(.first-place) {
+          background-color: #fef3c7 !important; /* Light gold */
+        }
+        :global(.second-place) {
+          background-color: #f3f4f6 !important; /* Light silver */
+        }
+        :global(.third-place) {
+          background-color: #f0d9b5 !important; /* Light bronze */
+        }
+      `}</style>
+
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-800">
           Olympics Medal Table
@@ -155,7 +177,7 @@ export default function MedalsTable() {
         </div>
         <div className="border rounded-lg p-4 text-center">
           <div className="text-2xl font-bold">{totals.bronze}</div>
-          <div className="text-sm">Total Bronze</div>
+          <div className="text-sm">Total Silver</div>
         </div>
         <div className="border rounded-lg p-4 text-center">
           <div className="text-2xl font-bold">{totals.total}</div>
@@ -172,6 +194,7 @@ export default function MedalsTable() {
           rowData={processedData}
           columnDefs={columnDefs}
           defaultColDef={defaultColDef}
+          rowClassRules={rowClassRules as unknown as RowClassRules}
           animateRows={true}
           enableCellTextSelection={true}
           suppressRowClickSelection={true}
