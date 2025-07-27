@@ -280,6 +280,7 @@ export default function MedalsTable() {
           columnDefs={columnDefs}
           defaultColDef={defaultColDef}
           rowClassRules={rowClassRules as unknown as RowClassRules}
+          suppressMultiSort={true}
           animateRows={true}
           enableCellTextSelection={true}
           suppressRowClickSelection={true}
