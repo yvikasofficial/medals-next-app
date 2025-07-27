@@ -66,23 +66,12 @@ export default function MedalsTable() {
         updateSortParam(sort.colId, sort.sort || "desc");
       }
 
-      // Update ranks after sorting
-      updateRanks();
+      // Remove the updateRanks() call to keep ranking static
     },
     [updateSortParam]
   );
 
-  // Function to update ranks based on current grid order
-  const updateRanks = useCallback(() => {
-    if (gridRef.current?.api) {
-      const api = gridRef.current.api;
-      api.forEachNodeAfterFilterAndSort((node, index) => {
-        if (node.data) {
-          node.setDataValue("rank", index + 1);
-        }
-      });
-    }
-  }, []);
+  // Remove the updateRanks function entirely since we want static ranking
 
   // Process data to add totals only - let AG Grid handle sorting
   const processedData = useMemo(() => {
@@ -131,8 +120,7 @@ export default function MedalsTable() {
       valueA: number,
       valueB: number,
       nodeA: { data: Medal },
-      nodeB: { data: Medal },
-      isInverted: boolean
+      nodeB: { data: Medal }
     ) => {
       // Primary comparison - only compare the actual column values
       if (valueA !== valueB) {
@@ -200,10 +188,10 @@ export default function MedalsTable() {
     );
   }, [processedData]);
 
-  // Grid ready callback to set initial sort and update ranks
+  // Grid ready callback - remove rank updating to keep static ranking
   const onGridReady = useCallback(() => {
-    updateRanks();
-  }, [updateRanks]);
+    // Ranks will remain as initially set in processedData
+  }, []);
 
   // Handle loading state
   if (isLoading) {
