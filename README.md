@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Medal Count App
 
-## Getting Started
+A Next.js application that displays Olympic medal counts with sortable columns and dynamic data fetching.
 
-First, run the development server:
+## 🔗 Live Demo
+
+[Deployed Link](YOUR_DEPLOYMENT_URL_HERE)
+
+## 🛠️ Tools & Technologies
+
+- **Next.js 15.4.4** - React framework
+- **React 19.1.0** - UI library
+- **TypeScript 5** - Type safety
+- **TailwindCSS 4** - Styling
+- **AG Grid** - Data table with sorting
+- **React Query** - Data fetching and caching
+- **Axios** - HTTP client
+- **Radix UI** - UI components
+- **Lucide React** - Icons
+- **ESLint** - Code linting
+
+## ✅ Take-Home Test Checkpoints
+
+### Core Requirements
+
+- [x] **Time-boxed to 3 hours**
+- [x] **URL parameter support** - `?sort=total|gold|silver|bronze`
+- [x] **Default sorting** - Defaults to gold medals
+- [x] **Proper tie-breaking rules** implemented for all sort types
+- [x] **Clickable column headers** for re-sorting
+- [x] **No re-fetching** on sort changes (client-side sorting)
+- [x] **Flag rendering** using provided flags.png sprite
+- [x] **Dynamic data loading** via Ajax call simulation
+- [x] **Error handling** for API failures
+- [x] **Design implementation** matching provided examples
+
+### Technical Requirements
+
+- [x] **TypeScript & React** implementation
+- [x] **Next.js** framework
+- [x] **Git tracking** with proper commit structure
+- [x] **Separation of concerns** and loose coupling architecture
+- [x] **Production-ready** code structure
+
+### Architecture Highlights
+
+- [x] **Component structure** - Modular components with clear responsibilities
+- [x] **Custom hooks** - Data fetching and state management
+- [x] **Type safety** - Comprehensive TypeScript interfaces
+- [x] **Error boundaries** - Graceful error handling
+- [x] **Responsive design** - Mobile-friendly layout
+
+## 🚀 Getting Started
 
 ```bash
+# Install dependencies
+npm install
+
+# Run development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# Build for production
+npm run build
+
+# Start production server
+npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🏅 Medal Sorting Functionality
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The app supports sorting by any medal type using URL parameters or clickable column headers:
 
-## Learn More
+- **Gold** (default) - `?sort=gold`
+- **Silver** - `?sort=silver`
+- **Bronze** - `?sort=bronze`
+- **Total** - `?sort=total`
 
-To learn more about Next.js, take a look at the following resources:
+**Tie-breaking:** When countries have equal counts, ties are broken by other medal types (prioritizing gold → silver → bronze) and finally by country name alphabetically.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Examples:**
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `localhost:3000?sort=total` - Sort by total medals
+- `localhost:3000?sort=silver` - Sort by silver medals
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📁 Project Structure
